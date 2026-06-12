@@ -1,0 +1,12 @@
+# 复制到项目根目录 local.properties（已在 .gitignore，勿提交 Git）
+# 修改后需重新编译并安装 App
+
+# ---------- 语音识别（云墨app03，控制台 AppID 如 123458373）----------
+baidu.asr.app.id=123458373
+baidu.asr.api.key=你的语音识别API_Key
+baidu.asr.secret.key=你的语音识别Secret_Key
+
+# ---------- 手写文字提取（云墨app02，控制台 AppID 如 123457403）----------
+baidu.ocr.app.id=123457403
+baidu.ocr.api.key=你的文字识别API_Key
+baidu.ocr.secret.key=你的文字识别Secret_Key

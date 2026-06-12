@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- User info card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_user_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:background="@drawable/gradient_user_card">
+
+                <TextView
+                    android:id="@+id/tv_greeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="欢迎使用云墨"
+                    android:textSize="18sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_subtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="多模态笔记工具，一站式内容接力"
+                    android:textSize="13sp"
+                    android:textColor="#D3E3FD"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Row 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp">
+
+            <!-- 1. 手写模拟器 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_handwrite"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#E3F2FD"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="12dp">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="✍️" android:textSize="28sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_handwrite" android:textSize="14sp"
+                        android:textColor="@color/on_surface" android:textStyle="bold"
+                        android:layout_marginTop="6dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_handwrite_subtitle" android:textSize="11sp"
+                        android:textColor="@color/secondary" android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 2. 文档导入 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_import"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFF3E0"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="12dp">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="📄" android:textSize="28sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_import" android:textSize="14sp"
+                        android:textColor="@color/on_surface" android:textStyle="bold"
+                        android:layout_marginTop="6dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_import_subtitle" android:textSize="11sp"
+                        android:textColor="@color/secondary" android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Row 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
+
+            <!-- 3. OCR -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_ocr"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#E8F5E9"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="12dp">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="📷" android:textSize="28sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_ocr" android:textSize="14sp"
+                        android:textColor="@color/on_surface" android:textStyle="bold"
+                        android:layout_marginTop="6dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_ocr_subtitle" android:textSize="11sp"
+                        android:textColor="@color/secondary" android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4. 语音转写 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_asr"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#F3E5F5"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="12dp">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="🎙️" android:textSize="28sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_asr" android:textSize="14sp"
+                        android:textColor="@color/on_surface" android:textStyle="bold"
+                        android:layout_marginTop="6dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_asr_subtitle" android:textSize="11sp"
+                        android:textColor="@color/secondary" android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Row 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp">
+
+            <!-- 5. 文档浏览 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_split_reader"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#E0F2F1"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="12dp">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="📖" android:textSize="28sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_split_reader" android:textSize="14sp"
+                        android:textColor="@color/on_surface" android:textStyle="bold"
+                        android:layout_marginTop="6dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_document_subtitle" android:textSize="11sp"
+                        android:textColor="@color/secondary" android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 6. 历史档案室 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_history"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FCE4EC"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="12dp">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="🗂️" android:textSize="28sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_history" android:textSize="14sp"
+                        android:textColor="@color/on_surface" android:textStyle="bold"
+                        android:layout_marginTop="6dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/home_history_subtitle" android:textSize="11sp"
+                        android:textColor="@color/secondary" android:layout_marginTop="2dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

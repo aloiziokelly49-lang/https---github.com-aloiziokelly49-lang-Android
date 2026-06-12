@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="android.view.View" />
+        <variable
+            name="voice"
+            type="com.cloudink.app.ui.editor.EditorVoiceState" />
+        <variable
+            name="editorVm"
+            type="com.cloudink.app.ui.editor.HandwriteEditorViewModel" />
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_voice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="@string/editor_voice_fab_desc"
+            android:visibility="@{voice.panelExpanded ? View.GONE : View.VISIBLE}"
+            app:backgroundTint="@color/primary"
+            app:srcCompat="@android:drawable/ic_btn_speak_now"
+            app:tint="@color/on_primary" />
+
+        <LinearLayout
+            android:id="@+id/panel_expanded"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_audio_panel"
+            android:elevation="8dp"
+            android:orientation="vertical"
+            android:paddingStart="14dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="12dp"
+            android:visibility="@{voice.panelExpanded ? View.VISIBLE : View.GONE}"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_recording_dot"
+                    android:visibility="@{voice.recording ? View.VISIBLE : View.GONE}" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@{voice.recording ? @string/editor_voice_recording : @string/editor_voice_panel_title}"
+                    android:textColor="@color/on_surface"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="语音采集" />
+
+                <ImageButton
+                    android:id="@+id/btn_collapse_panel"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/editor_voice_collapse"
+                    android:src="@android:drawable/arrow_down_float"
+                    app:tint="@color/secondary" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@{voice.statusMessage}"
+                android:textColor="@color/secondary"
+                android:textSize="11sp"
+                tools:text="边录边转写中…" />
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:visibility="@{voice.transcribing ? View.VISIBLE : View.GONE}" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/editor_voice_live_label"
+                android:textColor="@color/on_surface"
+                android:textSize="12sp" />
+
+            <ScrollView
+                android:id="@+id/scroll_live_transcript"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="4dp"
+                android:background="#F5F5F5"
+                android:fillViewport="true"
+                android:scrollbars="vertical">
+
+                <EditText
+                    android:id="@+id/et_live_transcript"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:gravity="top|start"
+                    android:hint="@string/editor_voice_live_hint"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:minHeight="96dp"
+                    android:padding="8dp"
+                    android:text="@={voice.liveTranscript}"
+                    android:textSize="13sp"
+                    tools:text="正在识别的文字会实时显示在这里…" />
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_voice_start"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:text="@string/editor_voice_start"
+                    android:textSize="11sp"
+                    android:visibility="@{voice.recording ? View.GONE : View.VISIBLE}" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_voice_interrupt"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> editorVm.interruptVoiceCapture()}"
+                    android:text="@string/editor_voice_interrupt"
+                    android:textSize="11sp"
+                    android:visibility="@{voice.recording ? View.VISIBLE : View.GONE}" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_voice_stop"
+                    style="?attr/materialButtonTonalStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> editorVm.stopVoiceCapture()}"
+                    android:text="@string/editor_voice_stop"
+                    android:textSize="11sp"
+                    android:visibility="@{voice.recording ? View.VISIBLE : View.GONE}" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_voice_append"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:enabled="@{voice.appendEnabled}"
+                    android:text="@string/editor_voice_append"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_voice_cancel"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> editorVm.cancelVoiceCapture()}"
+                    android:text="@string/label_cancel"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_voice_ime"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/voice_use_keyboard_ime"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</layout>

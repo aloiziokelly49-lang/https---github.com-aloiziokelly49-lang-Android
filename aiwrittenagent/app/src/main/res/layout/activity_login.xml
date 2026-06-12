@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.cloudink.app.ui.login.LoginViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/tv_app_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="28sp"
+            android:textColor="@color/primary"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="80dp" />
+
+        <TextView
+            android:id="@+id/tv_login_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/login_title"
+            android:textSize="16sp"
+            android:textColor="@color/secondary"
+            app:layout_constraintTop_toBottomOf="@id/tv_app_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="12dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_phone"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/phone_hint"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            app:layout_constraintTop_toBottomOf="@id/tv_login_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="48dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:maxLines="1"
+                android:text="@={viewModel.phone}" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_password"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/password_hint"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            app:passwordToggleEnabled="true"
+            app:layout_constraintTop_toBottomOf="@id/til_phone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:text="@={viewModel.password}" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_login"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:text="@string/login_button"
+            android:onClick="@{() -> viewModel.onLoginClick()}"
+            app:layout_constraintTop_toBottomOf="@id/til_password"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="32dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

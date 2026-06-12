@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://raw.githubusercontent.com/vercel-labs/skills/main/skills/find-skills/SKILL.md\" -UseBasicParsing)",
+      "PowerShell(npx skills add vercel-labs/skills@find-skills -g -y)",
+      "PowerShell(npx skills find android -y 2>&1)",
+      "PowerShell(npx skills find kotlin -y 2>&1)",
+      "PowerShell(npx skills find testing -y 2>&1)",
+      "PowerShell(npx skills find code-review -y 2>&1)",
+      "PowerShell(npx skills find java android -y 2>&1)",
+      "PowerShell(npx skills find database room -y 2>&1)",
+      "PowerShell(npx skills find git workflow -y 2>&1)",
+      "PowerShell(npx skills find material-design ui -y 2>&1)",
+      "PowerShell(npx skills add alinaqi/claude-bootstrap@android-java -g -y)",
+      "PowerShell(npx skills add krutikjain/android-agent-skills@android-room-database -g -y)",
+      "PowerShell(npx skills add smithery.ai@git-workflow -g -y)",
+      "PowerShell(npx skills add android/skills@android-cli -g -y)",
+      "PowerShell(Get-Command git -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source; if \\(-not \\(Get-Command git -ErrorAction SilentlyContinue\\)\\) { Write-Output \"GIT_NOT_FOUND\" })",
+      "PowerShell($env:APPDATA; Test-Path \"$env:APPDATA\\\\Code\\\\User\\\\settings.json\"; Test-Path \"$env:LOCALAPPDATA\\\\Code\\\\User\\\\settings.json\")",
+      "PowerShell(& \"D:\\\\Git\\\\bin\\\\git.exe\" --version)",
+      "PowerShell($env:Path = \"D:\\\\Git\\\\bin;D:\\\\Git\\\\cmd;\" + $env:Path; npx skills add alinaqi/claude-bootstrap@android-java -g -y)",
+      "PowerShell($env:Path = \"D:\\\\Git\\\\bin;D:\\\\Git\\\\cmd;\" + $env:Path; npx skills add smithery.ai@android-studio -g -y)",
+      "PowerShell($env:Path = \"D:\\\\Git\\\\bin;D:\\\\Git\\\\cmd;\" + $env:Path; npx skills add krutikjain/android-agent-skills@android-room-database -g -y; if \\($?\\) { npx skills add smithery.ai@git-workflow -g -y })",
+      "Read(//mnt/d/aiwrittenagent/app/src/main/res/**)",
+      "Read(//mnt/d/aiwrittenagent/app/src/main/**)",
+      "Read(//mnt/d/aiwrittenagent/app/src/androidTest/java/com/cloudink/**)",
+      "Bash(mkdir -p \"d:/aiwrittenagent/app/src/main/res/values-night\")",
+      "Bash(mkdir -p \"d:/aiwrittenagent/app/src/main/assets/fonts\" && echo \"done\")"
+    ],
+    "additionalDirectories": [
+      "d:\\aiwrittenagent\\app\\src\\main\\res",
+      "d:\\aiwrittenagent\\app\\src\\main\\assets"
+    ]
+  }
+}
