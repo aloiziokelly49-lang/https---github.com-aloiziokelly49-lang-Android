@@ -65,7 +65,7 @@ public class HomeFragment extends Fragment {
                 intent.putStringArrayListExtra(DocumentViewerActivity.EXTRA_URI_LIST, list);
                 startActivity(intent);
                 Toast.makeText(requireContext(),
-                    "已选择 " + uris.size() + " 个文件，正在打开第一个",
+                    getString(R.string.home_multi_import_toast, uris.size()),
                     Toast.LENGTH_LONG).show();
             }
         });

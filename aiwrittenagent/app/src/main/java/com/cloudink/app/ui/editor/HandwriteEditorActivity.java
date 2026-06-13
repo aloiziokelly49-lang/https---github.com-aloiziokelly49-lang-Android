@@ -481,6 +481,7 @@ public class HandwriteEditorActivity extends AppCompatActivity {
         record.setPenType(p.getPenType());
         record.setFontPath(p.getFontPath() != null ? p.getFontPath() : "fonts/NiHeWoDeLangManYuZhou-2.ttf");
         record.setFolderName("默认");
+        record.setStoragePath("内部存储/历史档案室");
 
         CloudInkRepository.get(this).saveHandwriteRecord(record,
             Arrays.asList("手写", "草稿"),

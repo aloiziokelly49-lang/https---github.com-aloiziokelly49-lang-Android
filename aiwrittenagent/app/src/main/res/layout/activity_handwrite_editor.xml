@@ -17,6 +17,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@color/background"
+        android:fitsSystemWindows="true"
         tools:context=".ui.editor.HandwriteEditorActivity">
 
         <!-- Toolbar -->

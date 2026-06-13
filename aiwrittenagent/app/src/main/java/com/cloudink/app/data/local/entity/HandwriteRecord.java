@@ -56,6 +56,10 @@ public class HandwriteRecord {
     @NonNull
     private String fontPath = "fonts/NiHeWoDeLangManYuZhou-2.ttf";
 
+    @ColumnInfo(name = "storage_path")
+    @NonNull
+    private String storagePath = "内部存储/历史档案室";
+
     public HandwriteRecord() {}
 
     @NonNull public String getId() { return id; }
@@ -84,4 +88,6 @@ public class HandwriteRecord {
     public void setJitterThreshold(float v) { this.jitterThreshold = v; }
     @NonNull public String getFontPath() { return fontPath; }
     public void setFontPath(@NonNull String v) { this.fontPath = v; }
+    @NonNull public String getStoragePath() { return storagePath; }
+    public void setStoragePath(@NonNull String storagePath) { this.storagePath = storagePath; }
 }

@@ -73,6 +73,17 @@
                 android:paddingVertical="2dp" />
 
             <TextView
+                android:id="@+id/tv_storage_path"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="10sp"
+                android:textColor="#78909C"
+                android:maxLines="1"
+                android:ellipsize="middle"
+                android:layout_marginStart="6dp" />
+
+            <TextView
                 android:id="@+id/tv_pen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

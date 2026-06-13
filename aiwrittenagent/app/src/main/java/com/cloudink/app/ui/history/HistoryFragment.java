@@ -114,7 +114,8 @@ public class HistoryFragment extends Fragment {
             h.title.setText(r.getTitle());
             h.date.setText(sdf.format(new Date(r.getUpdatedAt())));
             h.preview.setText(r.getContent() != null ? r.getContent() : "");
-            h.folder.setText(r.getFolderName());
+            h.folder.setText("📁 " + r.getFolderName());
+            h.storagePath.setText(r.getStoragePath());
             h.pen.setText(penLabel(r.getPenType()));
             h.itemView.setOnClickListener(v -> listener.onClick(r));
         }
@@ -131,15 +132,16 @@ public class HistoryFragment extends Fragment {
         }
 
         static class VH extends RecyclerView.ViewHolder {
-            TextView title, date, preview, folder, pen, tags;
+            TextView title, date, preview, folder, storagePath, pen, tags;
             VH(@NonNull View v) {
                 super(v);
-                title   = v.findViewById(R.id.tv_title);
-                date    = v.findViewById(R.id.tv_date);
-                preview = v.findViewById(R.id.tv_preview);
-                folder  = v.findViewById(R.id.tv_folder);
-                pen     = v.findViewById(R.id.tv_pen);
-                tags    = v.findViewById(R.id.tv_tags);
+                title      = v.findViewById(R.id.tv_title);
+                date       = v.findViewById(R.id.tv_date);
+                preview    = v.findViewById(R.id.tv_preview);
+                folder     = v.findViewById(R.id.tv_folder);
+                storagePath = v.findViewById(R.id.tv_storage_path);
+                pen        = v.findViewById(R.id.tv_pen);
+                tags       = v.findViewById(R.id.tv_tags);
             }
         }
     }

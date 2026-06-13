@@ -78,6 +78,9 @@
     <string name="editor_voice_need_notify">需要通知权限以在后台保持录音</string>
     <string name="editor_saved">已保存到历史档案室</string>
 
+    <string name="document_prev">上一个文档</string>
+    <string name="document_next">下一个文档</string>
+    <string name="home_multi_import_toast">已选择 %1$d 个文件，可在文档浏览中切换</string>
     <string name="document_to_editor">填入排版草稿</string>
     <string name="document_ocr_to_editor">OCR 识别并填入草稿</string>
     <string name="document_image_desc">导入的图片</string>

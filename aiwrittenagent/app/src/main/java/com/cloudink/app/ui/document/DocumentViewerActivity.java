@@ -37,6 +37,10 @@ public class DocumentViewerActivity extends AppCompatActivity {
     private PdfDocumentLoader.OpenResult pdfOpenResult;
     private String pendingEditorText;
 
+    // 多文档导航
+    private ArrayList<String> documentUriStrings;
+    private int currentDocumentIndex = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +48,11 @@ public class DocumentViewerActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         binding.toolbar.setNavigationOnClickListener(v -> finish());
+
+        // 多文档导航按钮
+        binding.btnPrev.setOnClickListener(v -> showPreviousDocument());
+        binding.btnNext.setOnClickListener(v -> showNextDocument());
+
         binding.btnToEditor.setOnClickListener(v -> {
             if (pendingEditorText == null || pendingEditorText.isEmpty()) return;
             Intent intent = new Intent(this, HandwriteEditorActivity.class);
@@ -61,20 +70,94 @@ public class DocumentViewerActivity extends AppCompatActivity {
     private void handleIntent() {
         ArrayList<String> uriStrings = getIntent().getStringArrayListExtra(EXTRA_URI_LIST);
         if (uriStrings != null && !uriStrings.isEmpty()) {
-            openUri(Uri.parse(uriStrings.get(0)));
+            documentUriStrings = uriStrings;
+            currentDocumentIndex = 0;
+            updateNavigationButtons();
+            openUri(Uri.parse(documentUriStrings.get(currentDocumentIndex)));
             return;
         }
+
+        // 单文件：用 EXTRA_URI 或 getData()
         Uri uri = getIntent().getParcelableExtra(EXTRA_URI);
         if (uri == null) uri = getIntent().getData();
         if (uri != null) {
+            documentUriStrings = new ArrayList<>();
+            documentUriStrings.add(uri.toString());
+            currentDocumentIndex = 0;
+            updateNavigationButtons();
             openUri(uri);
             return;
         }
+
+        // 演示 PDF
         if (getIntent().getBooleanExtra(EXTRA_SHOW_DEMO, false)) {
             File demo = new File(getExternalFilesDir(null), HomeActivity.DEMO_PDF_NAME);
-            if (demo.exists()) openUri(Uri.fromFile(demo));
+            if (demo.exists()) {
+                documentUriStrings = new ArrayList<>();
+                documentUriStrings.add(Uri.fromFile(demo).toString());
+                currentDocumentIndex = 0;
+                updateNavigationButtons();
+                openUri(Uri.fromFile(demo));
+            }
         }
     }
+
+    // ================================================================
+    // 多文档导航
+    // ================================================================
+
+    private void showNextDocument() {
+        if (documentUriStrings == null
+            || currentDocumentIndex >= documentUriStrings.size() - 1) return;
+        closeCurrentDocument();
+        currentDocumentIndex++;
+        updateNavigationButtons();
+        openUri(Uri.parse(documentUriStrings.get(currentDocumentIndex)));
+    }
+
+    private void showPreviousDocument() {
+        if (documentUriStrings == null || currentDocumentIndex <= 0) return;
+        closeCurrentDocument();
+        currentDocumentIndex--;
+        updateNavigationButtons();
+        openUri(Uri.parse(documentUriStrings.get(currentDocumentIndex)));
+    }
+
+    /** 切换到下一个文档前清理当前视图。 */
+    private void closeCurrentDocument() {
+        closePdf();
+        binding.rvPdfPages.setVisibility(View.GONE);
+        binding.scrollText.setVisibility(View.GONE);
+        binding.scrollImage.setVisibility(View.GONE);
+        binding.btnToEditor.setVisibility(View.GONE);
+        binding.progress.setVisibility(View.VISIBLE);
+        pendingEditorText = null;
+    }
+
+    /** 刷新导航按钮的可见性与启用状态，并更新标题栏备注。 */
+    private void updateNavigationButtons() {
+        boolean hasMultiple = documentUriStrings != null && documentUriStrings.size() > 1;
+        binding.navButtons.setVisibility(hasMultiple ? View.VISIBLE : View.GONE);
+        if (hasMultiple) {
+            binding.btnPrev.setEnabled(currentDocumentIndex > 0);
+            binding.btnNext.setEnabled(currentDocumentIndex < documentUriStrings.size() - 1);
+            binding.tvNavTitle.setText(
+                "文档 " + (currentDocumentIndex + 1) + " / " + documentUriStrings.size());
+        }
+    }
+
+    /** 构建副标题：多文档时附加 "文档 X/Y · " 前缀。 */
+    private String buildSubtitle(String detail) {
+        if (documentUriStrings != null && documentUriStrings.size() > 1) {
+            return "文档 " + (currentDocumentIndex + 1) + " / "
+                + documentUriStrings.size() + " · " + detail;
+        }
+        return detail;
+    }
+
+    // ================================================================
+    // 文档打开
+    // ================================================================
 
     private void openUri(Uri uri) {
         binding.progress.setVisibility(View.VISIBLE);
@@ -111,7 +194,7 @@ public class DocumentViewerActivity extends AppCompatActivity {
                     pdfAdapter.setPdfRenderer(opened.renderer);
                     pdfAdapter.notifyDataSetChanged();
                     binding.toolbar.setTitle(title);
-                    binding.toolbar.setSubtitle(pages + " 页");
+                    binding.toolbar.setSubtitle(buildSubtitle(pages + " 页"));
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
@@ -131,6 +214,7 @@ public class DocumentViewerActivity extends AppCompatActivity {
                     binding.progress.setVisibility(View.GONE);
                     binding.scrollText.setVisibility(View.VISIBLE);
                     binding.toolbar.setTitle(name != null ? name : "文本");
+                    binding.toolbar.setSubtitle(buildSubtitle(""));
                     binding.tvTextContent.setText(text);
                     pendingEditorText = text;
                     binding.btnToEditor.setVisibility(View.VISIBLE);
@@ -156,6 +240,7 @@ public class DocumentViewerActivity extends AppCompatActivity {
                     }
                     binding.scrollImage.setVisibility(View.VISIBLE);
                     binding.toolbar.setTitle(name != null ? name : "图片");
+                    binding.toolbar.setSubtitle(buildSubtitle(""));
                     binding.ivImage.setImageBitmap(bmp);
                     binding.btnToEditor.setVisibility(View.VISIBLE);
                     binding.btnToEditor.setText(R.string.document_ocr_to_editor);

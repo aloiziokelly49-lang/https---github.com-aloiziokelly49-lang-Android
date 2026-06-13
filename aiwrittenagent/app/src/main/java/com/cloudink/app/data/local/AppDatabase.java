@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
         HandwriteRecord.class, Draft.class, AudioRecord.class,
         Tag.class, RecordTagCrossRef.class
     },
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(DateConverter.class)
@@ -59,6 +59,14 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /** v3 → v4: 为 handwrite_records 添加存储路径字段 */
+    private static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE handwrite_records ADD COLUMN storage_path TEXT NOT NULL DEFAULT '内部存储/历史档案室'");
+        }
+    };
+
     public static AppDatabase create(@NonNull Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
@@ -68,7 +76,7 @@ public abstract class AppDatabase extends RoomDatabase {
                         AppDatabase.class,
                         "cloudink.db"
                     )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .addCallback(new Callback() {
                         @Override
                         public void onCreate(@NonNull SupportSQLiteDatabase db) {
