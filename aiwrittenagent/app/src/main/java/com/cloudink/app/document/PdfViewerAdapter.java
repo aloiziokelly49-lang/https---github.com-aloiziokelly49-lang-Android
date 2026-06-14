@@ -33,11 +33,10 @@ public class PdfViewerAdapter extends RecyclerView.Adapter<PdfViewerAdapter.Page
     private OnPageLongClickListener longClickListener;
 
     public PdfViewerAdapter() {
-        this.viewWidth = 720; // 默认宽度, 在 onAttachedToRecyclerView 时更新
+        this.viewWidth = 720; 
         Log.d(TAG, "PdfViewerAdapter 创建，默认宽度: " + viewWidth);
     }
 
-    /** 设置 PDF 数据源（生命周期由 Activity 管理，此处不 close）。 */
     public void setPdfRenderer(PdfRenderer renderer) {
         this.pdfRenderer = renderer;
         if (renderer != null) {
@@ -45,7 +44,6 @@ public class PdfViewerAdapter extends RecyclerView.Adapter<PdfViewerAdapter.Page
         }
     }
 
-    /** 解除引用，避免使用已关闭的 renderer。 */
     public void detachRenderer() {
         this.pdfRenderer = null;
         notifyDataSetChanged();
@@ -61,7 +59,6 @@ public class PdfViewerAdapter extends RecyclerView.Adapter<PdfViewerAdapter.Page
         super.onAttachedToRecyclerView(rv);
         Log.d(TAG, "onAttachedToRecyclerView 被调用");
         
-        // 立即获取宽度，如果为0则使用默认值
         int width = rv.getWidth();
         Log.d(TAG, "RecyclerView 当前宽度: " + width);
         
@@ -69,7 +66,6 @@ public class PdfViewerAdapter extends RecyclerView.Adapter<PdfViewerAdapter.Page
             viewWidth = width;
             Log.d(TAG, "使用 RecyclerView 宽度: " + viewWidth);
         } else {
-            // 等待布局完成后获取实际宽度
             rv.post(() -> {
                 int w = rv.getWidth();
                 Log.d(TAG, "布局完成后 RecyclerView 宽度: " + w);
@@ -115,7 +111,6 @@ public class PdfViewerAdapter extends RecyclerView.Adapter<PdfViewerAdapter.Page
             Log.d(TAG, "itemView 宽度: " + w);
             
             if (w <= 0) {
-                // 如果itemView宽度还没确定，使用父容器宽度
                 ViewGroup parent = (ViewGroup) holder.itemView.getParent();
                 if (parent != null) {
                     w = parent.getWidth();
@@ -135,19 +130,20 @@ public class PdfViewerAdapter extends RecyclerView.Adapter<PdfViewerAdapter.Page
             PdfRenderer.Page page = pdfRenderer.openPage(position);
             Log.d(TAG, "PDF 页面 " + position + " 原始尺寸: " + page.getWidth() + "x" + page.getHeight());
             
+            // 实际可用宽度
             int pageW = w;
-            // 修正高度计算，使用正确的宽度比例
+            // 按照等比例，计算页面高度
             int pageH = (int) (page.getHeight() * ((float) pageW / page.getWidth()));
             
-            // 确保尺寸有效
             if (pageW <= 0) pageW = 720;
             if (pageH <= 0) pageH = 1000;
             
             Log.d(TAG, "渲染尺寸: " + pageW + "x" + pageH);
             
-            // 创建Bitmap并渲染
+            // 创建Bitmap
             Bitmap bmp = Bitmap.createBitmap(pageW, pageH, Bitmap.Config.ARGB_8888);
-            bmp.eraseColor(0xFFFFFFFF); // 填充白色背景
+            bmp.eraseColor(0xFFFFFFFF); 
+            // 渲染PDF页面到Bitmap
             page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
             page.close();
 

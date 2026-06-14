@@ -6,29 +6,23 @@ import androidx.databinding.Bindable;
 import com.cloudink.app.BR;
 
 /**
- * 手写排版参数模型 —— 支持 DataBinding 双向绑定, 滑块变更时预览实时刷新。
+ * 手写排版参数模型 —— 支持 DataBinding 双向绑定, 
+ * 滑块变更时预览实时刷新。
  *
- * <p>所有长度单位均为像素 (px), 系数为无量纲乘数。
- *
- * <h3>默认值</h3>
- * <pre>
- *   textSize       = 42 px    (~16sp on mdpi)
- *   charSpacing    = 0.5      (字间距 = textSize × 0.5)
- *   lineSpacing    = 1.6      (行间距 = textSize × 1.6)
- *   jitterThreshold = 0.35   (抖动强度, 0 = 完全规则, 1 = 大幅随机)
- *   paperIndex     = 0        (纸张背景索引)
- *   penType        = "fountain"
- * </pre>
  */
+
+
+// BaseObservable 允许属性变更时通知 UI 刷新，
+// 配合 @Bindable 注解实现双向绑定。
 public class HandwritingParams extends BaseObservable {
 
-    /** 字号 (px), 通过 DataStore 持久化。范围建议 28~72。 */
+    /** 字号 (px) */
     private float textSize = 42f;
 
-    /** 字间距系数: 实际间距 = textSize × charSpacing。范围 0.0~2.0。 */
+    /** 字间距系数 */
     private float charSpacing = 0.5f;
 
-    /** 行间距系数: 行高 = textSize × lineSpacing。范围 1.0~3.0。 */
+    /** 行间距系数 */
     private float lineSpacing = 1.6f;
 
     /** 抖动强度: 0 = 打印机, 0.3~0.5 = 自然手写, 1.0 = 狂野抖动。 */
@@ -50,6 +44,8 @@ public class HandwritingParams extends BaseObservable {
     public void setTextSize(float v) {
         if (v < 14f) v = 14f;
         this.textSize = v;
+
+        // 字号变化时，通知UI刷新预览
         notifyPropertyChanged(BR.textSize);
     }
 

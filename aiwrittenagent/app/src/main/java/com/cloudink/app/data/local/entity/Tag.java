@@ -14,6 +14,8 @@ public class Tag {
     @NonNull
     @ColumnInfo(name = "id")
     private String id = UUID.randomUUID().toString();
+    // 使用UUID生成唯一ID，作为主键，
+    // 确保每个标签的唯一性
 
     @ColumnInfo(name = "name")
     @NonNull

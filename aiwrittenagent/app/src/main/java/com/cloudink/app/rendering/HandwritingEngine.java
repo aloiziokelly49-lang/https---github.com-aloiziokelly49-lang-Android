@@ -87,7 +87,6 @@ public class HandwritingEngine {
                 for (String name : list) {
                     String lower = name.toLowerCase();
                     if (!lower.endsWith(".ttf") && !lower.endsWith(".otf")) continue;
-                    // 仅展示用户放入的中文手写字体，排除拉丁/系统字体
                     if (lower.contains("barlow") || lower.contains("roboto")
                         || lower.contains("arial") || lower.contains("sans")) {
                         continue;
@@ -134,6 +133,7 @@ public class HandwritingEngine {
             return createEmptyBitmap(paperWidth, 200);
         }
 
+        // 根据 PenType 设置画笔属性，模拟不同笔触效果
         penType.applyTo(textPaint);
         if (theme == PaperThemeManager.DEEP_DARK) {
             textPaint.setColor(0xFFE8E8E8);
@@ -141,26 +141,40 @@ public class HandwritingEngine {
         if (handwritingTypeface != null) {
             textPaint.setTypeface(handwritingTypeface);
         }
+        // 设置文本大小
         textPaint.setTextSize(params.getTextSize());
 
+        //按照可用宽度、字符间距和行距进行文本排版，生成每行的文本列表
         List<String> lines = layoutLines(text, params, paperWidth - PADDING_H * 2);
 
         float lineHeight = params.getLineSpacing() * params.getTextSize();
         
-        // 修复：计算文字基线偏移，防止第一行被裁剪
         Paint.FontMetrics fm = textPaint.getFontMetrics();
         float baselineOffset = -fm.top; // 从顶部到基线的距离
         
+        // 计算总图像高度：行高 * 行数 + 上下内边距 + 基线偏移
         int totalHeight = (int) (lines.size() * lineHeight) + PADDING_V * 2 + (int)baselineOffset + PADDING_V;
+        // 创建目标 Bitmap 和 Canvas，准备绘制
         Bitmap bitmap = Bitmap.createBitmap(paperWidth, totalHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
 
+        // 绘制纸张背景
         drawPaperBackground(canvas, paperWidth, totalHeight, params.getPaperIndex());
 
-        // 修复：起始Y坐标加上基线偏移
         float cursorY = PADDING_V + baselineOffset;
         float charSpacingPx = params.getCharSpacing() * params.getTextSize();
+        //jitter 参数控制抖动强度，范围 0~1，
+        // 0 表示无抖动，1 表示最大抖动
         float jitter = Math.max(0f, Math.min(1f, params.getJitterThreshold()));
+        
+        // 需要为 每个字符 生成一个随机的偏移量，
+        // 模拟手写时笔迹的自然抖动
+
+        //然后，需要确保同样文本的自然抖动效果一致
+        //因此，需要使用文本内容的哈希值，
+        //作为随机数生成器的确定性种子，
+        //再生成随机数，
+        //那么相同文本产生的种子就相同，抖动效果也就一致了。
         Random rnd = jitter > 0.01f ? new Random(text.hashCode()) : null;
         float jitterScale = params.getTextSize() * 0.12f * jitter;
 
@@ -173,9 +187,12 @@ public class HandwritingEngine {
                 float glyphW = textPaint.measureText(glyph);
                 float dx = 0f, dy = 0f;
                 if (rnd != null) {
+                    // 计算高斯抖动偏移，X 轴和 Y 轴的抖动幅度不同，
+                    // Y 轴通常更小以保持行间距稳定
                     dx = (rnd.nextFloat() - 0.5f) * 2f * jitterScale;
                     dy = (rnd.nextFloat() - 0.5f) * 2f * jitterScale * 0.6f;
                 }
+                // 绘制当前字符，应用抖动偏移
                 canvas.drawText(glyph, cursorX + dx, cursorY + dy, textPaint);
                 cursorX += glyphW + charSpacingPx;
             }

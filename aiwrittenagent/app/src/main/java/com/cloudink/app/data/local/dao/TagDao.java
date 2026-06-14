@@ -11,6 +11,8 @@ import com.cloudink.app.data.local.entity.Tag;
 
 import java.util.List;
 
+
+// 标签DAO接口，管理用户的标签数据
 @Dao
 public interface TagDao {
 

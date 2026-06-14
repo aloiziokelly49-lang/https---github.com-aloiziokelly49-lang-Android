@@ -8,6 +8,8 @@ import androidx.room.Index;
 
 @Entity(
     tableName = "record_tag_join",
+
+    //多重标签，使用复合主键（record_id + tag_id）来唯一标识每条记录-标签关联，
     primaryKeys = {"record_id", "tag_id"},
     foreignKeys = {
         @ForeignKey(

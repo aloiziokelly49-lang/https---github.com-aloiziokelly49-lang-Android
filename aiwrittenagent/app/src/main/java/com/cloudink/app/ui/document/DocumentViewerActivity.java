@@ -49,7 +49,6 @@ public class DocumentViewerActivity extends AppCompatActivity {
 
         binding.toolbar.setNavigationOnClickListener(v -> finish());
 
-        // 多文档导航按钮
         binding.btnPrev.setOnClickListener(v -> showPreviousDocument());
         binding.btnNext.setOnClickListener(v -> showNextDocument());
 
@@ -77,7 +76,6 @@ public class DocumentViewerActivity extends AppCompatActivity {
             return;
         }
 
-        // 单文件：用 EXTRA_URI 或 getData()
         Uri uri = getIntent().getParcelableExtra(EXTRA_URI);
         if (uri == null) uri = getIntent().getData();
         if (uri != null) {
@@ -89,7 +87,6 @@ public class DocumentViewerActivity extends AppCompatActivity {
             return;
         }
 
-        // 演示 PDF
         if (getIntent().getBooleanExtra(EXTRA_SHOW_DEMO, false)) {
             File demo = new File(getExternalFilesDir(null), HomeActivity.DEMO_PDF_NAME);
             if (demo.exists()) {
@@ -123,7 +120,6 @@ public class DocumentViewerActivity extends AppCompatActivity {
         openUri(Uri.parse(documentUriStrings.get(currentDocumentIndex)));
     }
 
-    /** 切换到下一个文档前清理当前视图。 */
     private void closeCurrentDocument() {
         closePdf();
         binding.rvPdfPages.setVisibility(View.GONE);
@@ -134,7 +130,6 @@ public class DocumentViewerActivity extends AppCompatActivity {
         pendingEditorText = null;
     }
 
-    /** 刷新导航按钮的可见性与启用状态，并更新标题栏备注。 */
     private void updateNavigationButtons() {
         boolean hasMultiple = documentUriStrings != null && documentUriStrings.size() > 1;
         binding.navButtons.setVisibility(hasMultiple ? View.VISIBLE : View.GONE);
@@ -146,7 +141,6 @@ public class DocumentViewerActivity extends AppCompatActivity {
         }
     }
 
-    /** 构建副标题：多文档时附加 "文档 X/Y · " 前缀。 */
     private String buildSubtitle(String detail) {
         if (documentUriStrings != null && documentUriStrings.size() > 1) {
             return "文档 " + (currentDocumentIndex + 1) + " / "
@@ -159,26 +153,34 @@ public class DocumentViewerActivity extends AppCompatActivity {
     // 文档打开
     // ================================================================
 
+    // 根据 URI 类型打开文档
     private void openUri(Uri uri) {
         binding.progress.setVisibility(View.VISIBLE);
+        //获取文件类型和名称
         String type = getContentResolver().getType(uri);
         String name = queryDisplayName(uri);
         String lower = name != null ? name.toLowerCase() : "";
 
         if (isPdf(type, lower)) {
+            // PDF 文件
             loadPdf(uri, name);
         } else if (isText(type, lower)) {
+            // 文本文件
             loadText(uri, name);
         } else if (isImage(type, lower)) {
+            // 图片文件
             loadImage(uri, name);
         } else {
             loadPdf(uri, name);
         }
     }
 
+    // PDF 加载和渲染
     private void loadPdf(Uri uri, String name) {
+        //开启后台新线程加载 PDF，避免阻塞 UI 线程
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
+                //使用 PdfDocumentLoader（自定义） 打开 PDF，获取 PdfRenderer
                 PdfDocumentLoader.OpenResult opened = PdfDocumentLoader.open(this, uri);
                 int pages = opened.getPageCount();
                 String title = name != null && !name.isEmpty() ? name : "PDF";
@@ -191,6 +193,9 @@ public class DocumentViewerActivity extends AppCompatActivity {
                     binding.rvPdfPages.setVisibility(View.VISIBLE);
                     closePdf();
                     pdfOpenResult = opened;
+                    
+                    //使用 PdfViewerAdapter（自定义） 适配器 显示 PDF 页面，
+                    //适配器会根据 RecyclerView 宽度自动调整 Bitmap 大小
                     pdfAdapter.setPdfRenderer(opened.renderer);
                     pdfAdapter.notifyDataSetChanged();
                     binding.toolbar.setTitle(title);
@@ -211,6 +216,7 @@ public class DocumentViewerActivity extends AppCompatActivity {
                 if (is == null) throw new IllegalStateException("无法读取");
                 String text = new String(is.readAllBytes(), StandardCharsets.UTF_8);
                 runOnUiThread(() -> {
+                    //使用 ScrollView + TextView 显示文本内容
                     binding.progress.setVisibility(View.GONE);
                     binding.scrollText.setVisibility(View.VISIBLE);
                     binding.toolbar.setTitle(name != null ? name : "文本");
@@ -231,13 +237,16 @@ public class DocumentViewerActivity extends AppCompatActivity {
     private void loadImage(Uri uri, String name) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try (InputStream is = getContentResolver().openInputStream(uri)) {
+                //使用 BitmapFactory 解码图片，并显示在 ImageView 中
                 android.graphics.Bitmap bmp = BitmapFactory.decodeStream(is);
                 runOnUiThread(() -> {
+                    //显示图片，并提供 OCR 转文本功能
                     binding.progress.setVisibility(View.GONE);
                     if (bmp == null) {
                         Toast.makeText(this, "图片解码失败", Toast.LENGTH_SHORT).show();
                         return;
                     }
+                    //显示图片预览和 OCR 按钮
                     binding.scrollImage.setVisibility(View.VISIBLE);
                     binding.toolbar.setTitle(name != null ? name : "图片");
                     binding.toolbar.setSubtitle(buildSubtitle(""));

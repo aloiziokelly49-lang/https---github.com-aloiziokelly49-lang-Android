@@ -14,20 +14,24 @@ import com.cloudink.app.data.local.entity.Tag;
 
 import java.util.List;
 
+// 手写记录DAO接口，管理用户的手写记录数据
 @Dao
 public interface HandwriteRecordDao {
 
     @Query("SELECT * FROM handwrite_records ORDER BY updated_at DESC")
     LiveData<List<HandwriteRecord>> getAllRecords();
 
+    // 根据文件夹名称查询手写记录，按更新时间降序排序
     @Query("SELECT * FROM handwrite_records WHERE folder_name = :folder ORDER BY updated_at DESC")
     LiveData<List<HandwriteRecord>> getRecordsByFolder(String folder);
 
+    // 根据标签ID（标签类别）查询手写记录，按更新时间降序排序
     @Query("SELECT DISTINCT h.* FROM handwrite_records h "
          + "INNER JOIN record_tag_join j ON h.id = j.record_id "
          + "WHERE j.tag_id = :tagId ORDER BY h.updated_at DESC")
     LiveData<List<HandwriteRecord>> getRecordsByTag(String tagId);
 
+    // 根据ID查询手写记录
     @Query("SELECT * FROM handwrite_records WHERE id = :id")
     LiveData<HandwriteRecord> getRecordById(String id);
 
@@ -53,6 +57,7 @@ public interface HandwriteRecordDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertTagCrossRef(RecordTagCrossRef crossRef);
 
+    //根据多重标签查询手写记录，按更新时间降序排序
     @Query("SELECT t.* FROM tags t "
          + "INNER JOIN record_tag_join j ON t.id = j.tag_id "
          + "WHERE j.record_id = :recordId ORDER BY t.name")

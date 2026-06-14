@@ -49,6 +49,7 @@ public class CloudInkRepository {
         return INSTANCE;
     }
 
+    // 保存手写记录，tagNames表示关联的标签名称列表（可选）
     public void saveHandwriteRecord(HandwriteRecord record, List<String> tagNames, Runnable onDone) {
         io.execute(() -> {
             long now = System.currentTimeMillis();
@@ -60,6 +61,7 @@ public class CloudInkRepository {
         });
     }
 
+    // 保存草稿数据，source参数表示草稿来源（OCR、ASR、MANUAL、EXTRACT等）
     public void saveDraft(String content, String source, Runnable onDone) {
         io.execute(() -> {
             Draft d = new Draft();
@@ -72,6 +74,7 @@ public class CloudInkRepository {
         });
     }
 
+    // 保存音频记录，filePath表示音频文件的绝对路径，durationMs表示音频时长（毫秒），transcript表示转录文本
     public void saveAudioRecord(String filePath, long durationMs, String transcript, Runnable onDone) {
         io.execute(() -> {
             AudioRecord ar = new AudioRecord();
@@ -89,6 +92,7 @@ public class CloudInkRepository {
         });
     }
 
+    // 保存时，为每个手写记录创建关联标签
     private void linkTags(String recordId, List<String> tagNames) {
         if (tagNames == null || tagNames.isEmpty()) return;
         for (String name : tagNames) {

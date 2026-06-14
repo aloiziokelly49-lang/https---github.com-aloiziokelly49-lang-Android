@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey;
 
 import java.util.UUID;
 
+// 草稿箱实体类，表示用户的草稿数据
 @Entity(tableName = "drafts")
 public class Draft {
 
@@ -14,6 +15,8 @@ public class Draft {
     @NonNull
     @ColumnInfo(name = "id")
     private String id = UUID.randomUUID().toString();
+    // 使用 UUID 生成唯一 ID，作为主键，
+    // 确保每条草稿记录的唯一性
 
     @ColumnInfo(name = "content")
     private String content;

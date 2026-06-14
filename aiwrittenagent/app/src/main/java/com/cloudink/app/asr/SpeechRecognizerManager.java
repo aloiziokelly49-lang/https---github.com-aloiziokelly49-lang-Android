@@ -16,49 +16,33 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 /**
- * 封装 Android 系统内置 SpeechRecognizer, 实现边录边转写 (实时语音识别)。
- * <p>
- * 使用 {@link RecognizerIntent#EXTRA_PARTIAL_RESULTS} 机制,
- * 每识别出一个中间片段即通过 EventBus 发送 {@link AudioTranscribeEvent},
- * 外部 UI 订阅该事件即可实现文本实时滚动追加。
- *
- * <h3>使用示例</h3>
- * <pre>{@code
- *   SpeechRecognizerManager srm = new SpeechRecognizerManager(context);
- *   srm.startListening();  // 开始边录边转写
- *   // ... 订阅 AudioTranscribeEvent ...
- *   srm.stopListening();   // 停止, 获取最终结果
- *   srm.destroy();         // 释放资源
- * }</pre>
- *
- * <h3>与 AudioRecorderService 的关系</h3>
- * 本类独立于 MediaRecorder, 直接复用系统语音引擎。两者可配合使用:
- * AudioRecorderService 负责保存高清音频文件, SpeechRecognizerManager 负责实时转写。
- * <p>
- * 注意: 部分设备上 MediaRecorder 与 SpeechRecognizer 存在麦克风互斥,
- * 此时优先使用 SpeechRecognizer。
+ * 封装 Android 系统内置 SpeechRecognizer, 
+ * 实现边录边转写 (实时语音识别)。
  */
 public class SpeechRecognizerManager implements RecognitionListener {
 
     private static final String TAG = "SpeechRecManager";
 
     private final Context context;
+
+    // 系统 SpeechRecognizer 实例
     private SpeechRecognizer recognizer;
 
     private StringBuilder fullTranscript;
     private boolean isListening;
     private boolean destroyed;
-    private int errorCount; // 连续失败次数
+    private int errorCount;
 
     public SpeechRecognizerManager(Context context) {
         this.context = context.getApplicationContext();
         this.fullTranscript = new StringBuilder();
     }
 
-    /** 延迟创建 SpeechRecognizer, 避免构造函数中 crash。 */
     private SpeechRecognizer getRecognizer() {
         if (recognizer == null && !destroyed) {
             try {
+                // 创建系统 SpeechRecognizer 实例, 
+                // 并配置监听器回调
                 recognizer = SpeechRecognizer.createSpeechRecognizer(context);
                 recognizer.setRecognitionListener(this);
             } catch (Exception e) {
@@ -69,16 +53,11 @@ public class SpeechRecognizerManager implements RecognitionListener {
         return recognizer;
     }
 
-    // ================================================================
-    // 公开方法
-    // ================================================================
-
     /** 开始边录边转写。需在主线程调用。 */
     public void startListening() {
         if (destroyed) return;
         if (isListening) return;
 
-        // 检查设备是否支持语音识别
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
             EventBus.getDefault().post(new AudioTranscribeEvent(
                 "[设备未安装语音识别服务, 请安装\"Google\"应用或讯飞输入法后重试]", true));
@@ -102,10 +81,16 @@ public class SpeechRecognizerManager implements RecognitionListener {
         fullTranscript.setLength(0);
         isListening = true;
 
+        //SpeechRecognizer 需要通过 Intent，
+        //来配置识别参数，比如语言、模型等。
+
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+        //开启 边录边转写 配置
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+    
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN");
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "zh-CN");
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
@@ -115,6 +100,10 @@ public class SpeechRecognizerManager implements RecognitionListener {
         intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1000);
 
         try {
+
+            // 启动监听，系统会调用
+            // RecognitionListener 的回调方法，
+            // 来返回识别结果，实现边录边转写。
             recognizer.startListening(intent);
         } catch (SecurityException e) {
             isListening = false;
@@ -141,17 +130,15 @@ public class SpeechRecognizerManager implements RecognitionListener {
             Log.w(TAG, "stopListening: " + e.getMessage());
             isListening = false;
         }
-        // isListening 在 onResults / onError 中置回 false
     }
 
-    /** 取消当前识别(不触发 onResults)。 */
+    /** 取消识别 */
     public void cancel() {
         if (destroyed) return;
         recognizer.cancel();
         isListening = false;
     }
 
-    /** 释放底层 SpeechRecognizer 资源。调用后不可再用。 */
     public void destroy() {
         destroyed = true;
         isListening = false;
@@ -166,7 +153,6 @@ public class SpeechRecognizerManager implements RecognitionListener {
         } catch (Exception ignored) {}
     }
 
-    /** 返回本次会话累积的完整转写文本。 */
     public String getFullTranscript() {
         return fullTranscript.toString();
     }
@@ -186,43 +172,42 @@ public class SpeechRecognizerManager implements RecognitionListener {
 
     @Override
     public void onBeginningOfSpeech() {
-        // 用户开始说话 —— 可用于 UI 波形动画触发
     }
 
-    /**
-     * 音量变化回调 (0~10)。
-     * 可结合 EventBus 发送音量值供 UI 绘制波形。
-     */
     @Override
     public void onRmsChanged(float rmsdB) {
-        // 预留: 后续可发送 AudioLevelEvent 给 UI 绘制波形
     }
 
     /**
-     * 核心回调: 实时中间识别结果。
-     * 每次语音片段变化时触发, 实现"边录边转写"效果。
+     * 核心回调: 
+     * 每次语音片段变化时触发, 
+     * 调用 onPartialResults回调，
+     * 会返回当前的部分识别结果，
+     * 实现"边录边转写"效果。
      */
     @Override
     public void onPartialResults(Bundle partialResults) {
+        // 部分识别结果
         ArrayList<String> matches = partialResults.getStringArrayList(
             SpeechRecognizer.RESULTS_RECOGNITION);
         if (matches != null && !matches.isEmpty()) {
             String partial = matches.get(0);
-            // 发送中间结果 (isFinal=false) — UI 可以实时滚动展示
+            // 发送中间结果— UI 可以实时滚动展示
             EventBus.getDefault().post(new AudioTranscribeEvent(partial, false));
         }
     }
 
-    /** 最终识别结果 (用户停止说话后回调)。 */
+    /** 返回最终识别结果 (用户停止说话后回调)。 */
     @Override
     public void onResults(Bundle results) {
         isListening = false;
+        // 最终识别结果
         ArrayList<String> matches = results.getStringArrayList(
             SpeechRecognizer.RESULTS_RECOGNITION);
         if (matches != null && !matches.isEmpty()) {
             String finalText = matches.get(0);
             fullTranscript.append(finalText);
-            // 发送最终结果 (isFinal=true) — UI 可确认追加
+            // 发送最终识别结果
             EventBus.getDefault().post(new AudioTranscribeEvent(finalText, true));
         } else {
             EventBus.getDefault().post(
@@ -267,13 +252,11 @@ public class SpeechRecognizerManager implements RecognitionListener {
                 msg = "[未知错误: " + errorCode + "]";
                 break;
         }
-        // 错误也通过 EventBus 通知 UI, isFinal=true 表示本次识别结束
         EventBus.getDefault().post(new AudioTranscribeEvent(msg, true));
     }
 
     @Override
     public void onBufferReceived(byte[] buffer) {
-        // 原始音频数据 — 预留用于本地音频分析
     }
 
     @Override
@@ -283,6 +266,5 @@ public class SpeechRecognizerManager implements RecognitionListener {
 
     @Override
     public void onEvent(int eventType, Bundle params) {
-        // 厂商扩展事件 — 一般无需处理
     }
 }

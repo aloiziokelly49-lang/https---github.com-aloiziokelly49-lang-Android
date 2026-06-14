@@ -6,6 +6,9 @@ import androidx.databinding.Bindable;
 import com.cloudink.app.BR;
 
 /** 手写页悬浮语音面板 —— DataBinding 双向绑定状态。 */
+
+//使用 BaseObservable 和 @Bindable 注解
+//把转写后的文本双向绑定到 UI，
 public class EditorVoiceState extends BaseObservable {
 
     private boolean recording;
@@ -22,6 +25,7 @@ public class EditorVoiceState extends BaseObservable {
     public void setRecording(boolean recording) {
         if (this.recording != recording) {
             this.recording = recording;
+            // 录音状态变化时通知 UI 更新
             notifyPropertyChanged(BR.recording);
         }
     }
@@ -46,6 +50,7 @@ public class EditorVoiceState extends BaseObservable {
     public void setTranscribing(boolean transcribing) {
         if (this.transcribing != transcribing) {
             this.transcribing = transcribing;
+            // 转写状态变化时通知 UI 更新
             notifyPropertyChanged(BR.transcribing);
             refreshAppendEnabled();
         }
@@ -60,6 +65,7 @@ public class EditorVoiceState extends BaseObservable {
         String next = liveTranscript != null ? liveTranscript : "";
         if (!next.equals(this.liveTranscript)) {
             this.liveTranscript = next;
+            // 转写文本变化时通知 UI 更新
             notifyPropertyChanged(BR.liveTranscript);
             refreshAppendEnabled();
         }
@@ -74,6 +80,7 @@ public class EditorVoiceState extends BaseObservable {
         String next = statusMessage != null ? statusMessage : "";
         if (!next.equals(this.statusMessage)) {
             this.statusMessage = next;
+            // 转写状态消息变化时通知 UI 更新
             notifyPropertyChanged(BR.statusMessage);
         }
     }

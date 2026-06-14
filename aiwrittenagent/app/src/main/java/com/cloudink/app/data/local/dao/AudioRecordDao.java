@@ -11,6 +11,7 @@ import com.cloudink.app.data.local.entity.AudioRecord;
 
 import java.util.List;
 
+// 音频记录DAO接口，管理与手写记录相关的音频数据
 @Dao
 public interface AudioRecordDao {
 

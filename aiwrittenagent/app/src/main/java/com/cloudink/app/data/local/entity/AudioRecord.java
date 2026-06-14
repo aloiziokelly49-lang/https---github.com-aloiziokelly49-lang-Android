@@ -9,6 +9,7 @@ import androidx.room.PrimaryKey;
 
 import java.util.UUID;
 
+// 音频记录实体类，表示与手写记录相关的音频数据
 @Entity(
     tableName = "audio_records",
     foreignKeys = @ForeignKey(
@@ -25,11 +26,14 @@ public class AudioRecord {
     @NonNull
     @ColumnInfo(name = "id")
     private String id = UUID.randomUUID().toString();
+    // 使用UUID生成唯一ID，作为主键，
+    // 确保每条音频记录的唯一性
 
     @ColumnInfo(name = "file_name")
     @NonNull
     private String fileName = "";
 
+    // 音频文件的绝对路径
     @ColumnInfo(name = "file_path")
     @NonNull
     private String filePath = "";

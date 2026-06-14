@@ -246,6 +246,8 @@ public class HandwriteEditorActivity extends AppCompatActivity {
     // ================================================================
 
     private void setupFontToggle() {
+
+        //扫描 assets/fonts/ 目录，获取可用字体列表
         List<String> fonts = HandwritingEngine.getAvailableFonts(this);
         if (fonts.isEmpty()) return;
 
@@ -259,6 +261,8 @@ public class HandwriteEditorActivity extends AppCompatActivity {
 
         int checkedId = View.NO_ID;
         for (String fontPath : fonts) {
+
+            // 为每个字体创建一个 MaterialButton，添加到 toggleFont 中
             MaterialButton btn = new MaterialButton(this,
                 null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -273,6 +277,8 @@ public class HandwriteEditorActivity extends AppCompatActivity {
             btn.setAllCaps(false);
             btn.setCornerRadius((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f,
                 getResources().getDisplayMetrics()));
+
+            // 使用按钮的 tag 存储字体路径，点击时切换字体
             btn.setTag(fontPath);
             btn.setId(View.generateViewId());
             binding.toggleFont.addView(btn);
@@ -284,15 +290,20 @@ public class HandwriteEditorActivity extends AppCompatActivity {
             binding.toggleFont.check(checkedId);
         }
 
+        // 切换字体时，更新 HandwritingEngine 和 ViewModel，
+        // 并保存用户选择的默认字体到 SharedPreferences
         binding.toggleFont.addOnButtonCheckedListener((group, checkedId2, isChecked) -> {
             if (!isChecked) return;
             View checked = group.findViewById(checkedId2);
             String fontPath = (String) checked.getTag();
             if (fontPath == null) return;
 
+            // 切换字体，更新 HandwritingEngine 和 ViewModel，
             CloudInkApplication.getInstance().getHandwritingEngine()
                 .switchFont(HandwriteEditorActivity.this, fontPath);
             viewModel.getParams().setFontPath(fontPath);
+
+            // 保存用户选择的默认字体到 SharedPreferences
             CloudInkApplication.getInstance().getPreferences()
                 .saveDefaultFontPath(fontPath);
             // 触发重渲染

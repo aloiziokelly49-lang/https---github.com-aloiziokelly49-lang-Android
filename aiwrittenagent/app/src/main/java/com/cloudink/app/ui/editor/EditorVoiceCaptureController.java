@@ -20,6 +20,7 @@ import org.greenrobot.eventbus.ThreadMode;
 /**
  * 手写页语音采集：前台 Service + MediaRecorder 后台保活，
  * SpeechRecognizer 边录边转写，麦克风互斥时降级为停止后百度转写文件。
+ * 如果百度转写也不可用，则提示用户使用输入法语音。
  */
 public class EditorVoiceCaptureController {
 
@@ -60,6 +61,8 @@ public class EditorVoiceCaptureController {
         return capturing;
     }
 
+    // 开始采集：启动前台 Service 录音，边录边转写（如果可用），
+    // 更新 UI 状态
     public void startCapture() {
         if (capturing) {
             voice.setPanelExpanded(true);
@@ -83,24 +86,30 @@ public class EditorVoiceCaptureController {
 
         AudioRecorderServiceStarter.start(appContext);
 
+        // 优先使用系统 SpeechRecognizer 边录边转写，
+        // 麦克风被占用时降级为停止后百度转写
         if (SpeechInputHelper.hasStreamingRecognizer(appContext)) {
             if (speechManager == null) {
                 speechManager = new SpeechRecognizerManager(appContext);
             }
             speechStopped = false;
+            // 开始边录边转写，UI 显示状态
             speechManager.startListening();
             voice.setStatusMessage("边录边转写中（可息屏，后台继续录音）");
         } else if (BaiduAsrConfig.isConfigured()) {
             speechStreamingDisabled = true;
             speechStopped = true;
+            // 无法边录边转，提示用户停止后使用百度转写
             voice.setStatusMessage("后台录音中，点「停止」后百度转写");
         } else {
             speechStreamingDisabled = true;
             speechStopped = true;
+            // 无法边录边转，提示用户停止后使用输入法语音
             voice.setStatusMessage(SpeechInputHelper.imeVoiceHint(appContext));
         }
     }
 
+    // 停止采集：停止 Service 录音，停止边录边转（如果在用），
     public void stopCapture() {
         if (!capturing) return;
         stopRequested = true;
@@ -159,6 +168,8 @@ public class EditorVoiceCaptureController {
         sessionTranscript.setLength(0);
     }
 
+    // 一键拼接到当前转写结果末尾，
+    // 适用于输入法语音等外部转写结果
     public void appendExternalSegment(String segment) {
         if (segment == null || segment.trim().isEmpty()) return;
         String cleaned = segment.trim();

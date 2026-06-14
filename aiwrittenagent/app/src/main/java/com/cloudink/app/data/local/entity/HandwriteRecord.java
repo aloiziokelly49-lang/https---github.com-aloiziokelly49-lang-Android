@@ -10,10 +10,14 @@ import java.util.UUID;
 @Entity(tableName = "handwrite_records")
 public class HandwriteRecord {
 
+    // 手写记录实体类，表示用户的手写记录数据
+
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "id")
     private String id = UUID.randomUUID().toString();
+    // 使用UUID生成唯一ID，作为主键，
+    // 确保每条手写记录的唯一性
 
     @ColumnInfo(name = "title")
     @NonNull
@@ -52,10 +56,12 @@ public class HandwriteRecord {
     @ColumnInfo(name = "jitter_threshold")
     private float jitterThreshold = 0.35f;
 
+   
     @ColumnInfo(name = "font_path")
     @NonNull
     private String fontPath = "fonts/NiHeWoDeLangManYuZhou-2.ttf";
 
+    // 存储路径字段，记录手写记录的实际存储位置（内部存储/外部存储/云端）
     @ColumnInfo(name = "storage_path")
     @NonNull
     private String storagePath = "内部存储/历史档案室";

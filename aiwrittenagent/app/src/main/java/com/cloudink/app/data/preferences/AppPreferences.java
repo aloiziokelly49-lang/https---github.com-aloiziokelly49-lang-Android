@@ -20,8 +20,11 @@ public class AppPreferences {
         PreferencesKeys.booleanKey("is_logged_in");
     public static final Preferences.Key<String> KEY_USER_PHONE =
         PreferencesKeys.stringKey("user_phone");
+
+    //是否第一次登录
     public static final Preferences.Key<Boolean> KEY_IS_FIRST_LOGIN =
         PreferencesKeys.booleanKey("is_first_login");
+    //用户排版偏好设置
     public static final Preferences.Key<Float> KEY_DEFAULT_CHAR_SPACING =
         PreferencesKeys.floatKey("default_char_spacing");
     public static final Preferences.Key<Float> KEY_DEFAULT_LINE_SPACING =
@@ -40,11 +43,18 @@ public class AppPreferences {
     private final RxDataStore<Preferences> dataStore;
 
     public AppPreferences(@NonNull Context context) {
+
+        // 初始化 DataStore，使用 RxJava3 适配器，
+        // 数据存储在 "cloudink_settings" 文件中
         dataStore = new RxPreferenceDataStoreBuilder(context, PREF_NAME).build();
     }
 
     // --- Login state ---
+    
+    // 获取登录状态
     public Single<Boolean> isLoggedIn() {
+
+        // 从 DataStore 中读取登录状态
         return dataStore.data().firstOrError()
             .map(prefs -> {
                 Boolean val = prefs.get(KEY_IS_LOGGED_IN);
@@ -53,6 +63,8 @@ public class AppPreferences {
     }
 
     public void setLoggedIn(boolean loggedIn, String phone) {
+
+        // 保存登录状态和用户手机号到 DataStore 中，异步执行
         dataStore.updateDataAsync(prefs -> {
             MutablePreferences mutable = prefs.toMutablePreferences();
             mutable.set(KEY_IS_LOGGED_IN, loggedIn);
@@ -63,6 +75,7 @@ public class AppPreferences {
 
     // --- First login ---
     public Single<Boolean> isFirstLogin() {
+        // 从 DataStore 中读取是否第一次登录的状态，默认为 true
         return dataStore.data().firstOrError()
             .map(prefs -> {
                 Boolean val = prefs.get(KEY_IS_FIRST_LOGIN);
@@ -78,32 +91,38 @@ public class AppPreferences {
         }).subscribeOn(Schedulers.io()).subscribe();
     }
 
-    // --- Handwriting preferences (blocking reads for settings page) ---
     public float getDefaultCharSpacing() {
+        // 从 DataStore 中读取默认字符间距，默认为 0.5f
         return getBlocking(KEY_DEFAULT_CHAR_SPACING, 0.5f);
     }
 
     public float getDefaultLineSpacing() {
+        // 从 DataStore 中读取默认行间距，默认为 1.5f
         return getBlocking(KEY_DEFAULT_LINE_SPACING, 1.5f);
     }
 
     public float getDefaultJitter() {
+        // 从 DataStore 中读取默认抖动，默认为 0.3f
         return getBlocking(KEY_DEFAULT_JITTER, 0.3f);
     }
 
     public int getDefaultPaperIndex() {
+        // 从 DataStore 中读取默认纸张索引，默认为 0（即第一种纸张）
         return getBlocking(KEY_DEFAULT_PAPER_INDEX, 0);
     }
 
     public String getDefaultPenType() {
+        // 从 DataStore 中读取默认笔类型，默认为 "fountain"（钢笔）
         return getBlocking(KEY_DEFAULT_PEN_TYPE, "fountain");
     }
 
     public void saveDefaultCharSpacing(float value) {
+        // 保存默认字符间距到 DataStore 中，异步执行
         put(KEY_DEFAULT_CHAR_SPACING, value);
     }
 
     public void saveDefaultLineSpacing(float value) {
+        // 保存默认行间距到 DataStore 中，异步执行
         put(KEY_DEFAULT_LINE_SPACING, value);
     }
 
@@ -135,6 +154,8 @@ public class AppPreferences {
     @SuppressWarnings("unchecked")
     private <T> T getBlocking(Preferences.Key<T> key, T defaultValue) {
         try {
+            // 从 DataStore 中读取指定键的值，
+            // 如果不存在则返回默认值，阻塞当前线程直到获取到数据
             return (T) dataStore.data().firstOrError()
                 .map(prefs -> {
                     T val = prefs.get(key);
@@ -146,7 +167,9 @@ public class AppPreferences {
         }
     }
 
+
     private <T> void put(Preferences.Key<T> key, T value) {
+        // 将指定键值对保存到 DataStore 中，异步执行
         dataStore.updateDataAsync(prefs -> {
             MutablePreferences mutable = prefs.toMutablePreferences();
             mutable.set(key, value);

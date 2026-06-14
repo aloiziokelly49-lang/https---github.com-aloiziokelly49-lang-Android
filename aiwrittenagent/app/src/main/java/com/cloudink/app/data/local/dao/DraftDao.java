@@ -11,6 +11,8 @@ import com.cloudink.app.data.local.entity.Draft;
 
 import java.util.List;
 
+// 草稿箱DAO接口，管理用户的草稿数据
+
 @Dao
 public interface DraftDao {
 

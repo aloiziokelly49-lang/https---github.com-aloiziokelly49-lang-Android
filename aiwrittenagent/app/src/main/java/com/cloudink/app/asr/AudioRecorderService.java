@@ -28,30 +28,12 @@ import java.util.Locale;
 /**
  * 前台 Service —— 使用 MediaRecorder 实现息屏/切后台不中断的音频采集。
  *
- * <h3>生命周期</h3>
- * <ol>
- *   <li>外部通过 {@link #ACTION_START} 启动 → 创建 MediaRecorder → 开始录制</li>
- *   <li>外部通过 {@link #ACTION_STOP} 停止 → 停止录制 → stopSelf()</li>
- *   <li>录制过程中通过 EventBus 发送 {@link RecordingStateEvent}</li>
- * </ol>
- *
- * <h3>使用示例</h3>
- * <pre>{@code
- *   Intent intent = new Intent(context, AudioRecorderService.class);
- *   intent.setAction(AudioRecorderService.ACTION_START);
- *   ContextCompat.startForegroundService(context, intent);
- *   // ... 稍后
- *   intent.setAction(AudioRecorderService.ACTION_STOP);
- *   context.startService(intent);
- * }</pre>
  */
 public class AudioRecorderService extends Service {
 
-    // ---- 广播 Action ----
     public static final String ACTION_START = "com.cloudink.app.action.START_RECORDING";
     public static final String ACTION_STOP  = "com.cloudink.app.action.STOP_RECORDING";
 
-    // ---- 通知 ----
     private static final String CHANNEL_ID   = "cloudink_recording";
     private static final String CHANNEL_NAME = "录音状态";
     private static final int    NOTIFY_ID    = 2001;
@@ -107,6 +89,8 @@ public class AudioRecorderService extends Service {
         currentFilePath = generateFilePath();
 
         try {
+            // 初始化 MediaRecorder，
+            // 配置参数，比如音频源、输出格式、编码器、采样率、比特率等，
             mediaRecorder = new MediaRecorder();
             mediaRecorder.setAudioSource(AUDIO_SOURCE);
             mediaRecorder.setOutputFormat(OUTPUT_FORMAT);
@@ -115,10 +99,15 @@ public class AudioRecorderService extends Service {
             mediaRecorder.setAudioEncodingBitRate(BIT_RATE);
             mediaRecorder.setOutputFile(currentFilePath);
             mediaRecorder.prepare();
+            // 启动录音
             mediaRecorder.start();
 
             isRecording = true;
+
+            // 启动前台服务，显示持续通知，实现息屏/切后台不中断录音
             startForeground(NOTIFY_ID, buildNotification("录制中..."));
+
+            // 发送录音开始事件
             EventBus.getDefault().post(RecordingStateEvent.started());
 
         } catch (IOException e) {
@@ -134,13 +123,11 @@ public class AudioRecorderService extends Service {
     private void stopRecording() {
         if (!isRecording) return;
 
-        // 安全停止 — MediaRecorder 有时会在 stop() 时抛 RuntimeException
         try {
             if (mediaRecorder != null) {
                 mediaRecorder.stop();
             }
         } catch (RuntimeException ignored) {
-            // 可能已被释放或录制时间过短
         } finally {
             releaseMediaRecorder();
             isRecording = false;
@@ -149,7 +136,6 @@ public class AudioRecorderService extends Service {
         // 停止前台, 保留通知直到用户操作
         stopForeground(STOP_FOREGROUND_DETACH);
 
-        // 校验文件有效性
         File file = new File(currentFilePath);
         if (file.exists() && file.length() > 0) {
             EventBus.getDefault().post(RecordingStateEvent.stopped(currentFilePath));
@@ -169,7 +155,6 @@ public class AudioRecorderService extends Service {
                 mediaRecorder.reset();
                 mediaRecorder.release();
             } catch (Exception ignored) {
-                // 容错: MediaRecorder 状态机冲突时忽略
             }
             mediaRecorder = null;
         }
@@ -197,13 +182,16 @@ public class AudioRecorderService extends Service {
         }
     }
 
+    // 构建前台服务通知
     private Notification buildNotification(String contentText) {
+        // 点击通知，就会跳转到 HomeActivity
         Intent intent = new Intent(this, HomeActivity.class);
         PendingIntent pi = PendingIntent.getActivity(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
         );
 
+        // 构建通知，显示录音状态，设置点击事件等
         return new NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("云墨录音")
             .setContentText(contentText)

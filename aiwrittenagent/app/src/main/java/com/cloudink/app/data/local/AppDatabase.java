@@ -25,6 +25,8 @@ import java.util.concurrent.Executors;
 
 @Database(
     entities = {
+        //有五张表，分别是
+        //手写记录表、草稿表、音频记录表、标签表，以及记录-标签关联表。
         HandwriteRecord.class, Draft.class, AudioRecord.class,
         Tag.class, RecordTagCrossRef.class
     },

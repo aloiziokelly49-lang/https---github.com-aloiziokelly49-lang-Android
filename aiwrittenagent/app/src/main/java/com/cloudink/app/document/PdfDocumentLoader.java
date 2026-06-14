@@ -59,6 +59,9 @@ public final class PdfDocumentLoader {
         }
     }
 
+    // 直接尝试打开，失败后复制到缓存再打开
+    // 因为某些 URI（如 content://）可能不支持直接打开为 PdfRenderer，
+    // 比如 百度网盘的 content:// URI 就无法直接打开，但复制到缓存后就可以正常打开。
     public static OpenResult open(Context context, Uri uri) throws IOException {
         if (uri == null) {
             throw new IOException("文件地址为空");
@@ -78,9 +81,13 @@ public final class PdfDocumentLoader {
 
         ParcelFileDescriptor pfd = null;
         try {
+        // 直接尝试打开，某些 URI 可能支持（如 file:// 或特定提供者），
+        // 某些 URI（如 content://）可能不支持直接打开为 PdfRenderer，
+        // 比如 百度网盘的 content:// URI 就无法直接打开，但复制到缓存后就可以正常打开。
             pfd = context.getContentResolver().openFileDescriptor(uri, "r");
             if (pfd != null) {
                 try {
+                    //打开为 PdfRenderer
                     PdfRenderer renderer = new PdfRenderer(pfd);
                     return new OpenResult(renderer, pfd, null);
                 } catch (IOException | IllegalArgumentException | SecurityException e) {
@@ -102,11 +109,13 @@ public final class PdfDocumentLoader {
             Log.w(TAG, "openFileDescriptor failed: " + e.getMessage());
         }
 
+        // 如果直接打开失败，则复制到缓存后再打开
         File cacheDir = new File(context.getCacheDir(), "pdf_import");
         if (!cacheDir.exists() && !cacheDir.mkdirs()) {
             throw new IOException("无法创建 PDF 缓存目录");
         }
         File out = new File(cacheDir, "doc_" + System.currentTimeMillis() + ".pdf");
+        // 复制 URI 内容到缓存文件
         copyUriToFile(context, uri, out);
 
         ParcelFileDescriptor cacheFd = ParcelFileDescriptor.open(

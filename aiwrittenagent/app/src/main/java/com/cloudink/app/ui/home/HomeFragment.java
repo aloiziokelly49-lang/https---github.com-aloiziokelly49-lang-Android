@@ -35,19 +35,24 @@ public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private ProgressDialog ocrProgress;
-
+    //单文件上传
     private final ActivityResultLauncher<String[]> docPicker =
+        //选择单文件
         registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
             if (uri == null) return;
             try {
+                //获取持久化权限
                 requireContext().getContentResolver().takePersistableUriPermission(
                     uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             } catch (Exception ignored) {
             }
+            //根据URI，路由到不同的处理界面（PDF、音频、图片、文本等）
             routeImportedDocument(uri);
         });
 
+    //多文件上传
     private final ActivityResultLauncher<String[]> multiDocPicker =
+        //选择多个文件
         registerForActivityResult(new ActivityResultContracts.OpenMultipleDocuments(), uris -> {
             if (uris == null || uris.isEmpty()) return;
             for (Uri u : uris) {
@@ -59,8 +64,15 @@ public class HomeFragment extends Fragment {
             if (uris.size() == 1) {
                 routeImportedDocument(uris.get(0));
             } else {
+                // 多文件暂不区分类型，
+                // 直接进入文档浏览器DocumentViewerActivity展示
+                // DocumentViewerActivity会根据URI类型
+                // 展示不同的预览界面
+
+                // 将URI列表转换为字符串列表传递给DocumentViewerActivity
                 ArrayList<String> list = new ArrayList<>();
                 for (Uri u : uris) list.add(u.toString());
+                //使用Intent传递URI列表到DocumentViewerActivity
                 Intent intent = new Intent(requireContext(), DocumentViewerActivity.class);
                 intent.putStringArrayListExtra(DocumentViewerActivity.EXTRA_URI_LIST, list);
                 startActivity(intent);
@@ -91,10 +103,13 @@ public class HomeFragment extends Fragment {
         setupCardListeners();
     }
 
+    // 根据URI类型，路由到不同的处理界面（PDF、音频、图片、文本等）
     private void routeImportedDocument(Uri uri) {
+        // 解析URI类型，判断是PDF、音频、图片还是文本
         ImportType kind = resolveImportType(uri);
         switch (kind) {
             case AUDIO: {
+                // 如果是音频文件，直接打开语音转写界面，并传入URI
                 Intent intent = new Intent(requireContext(), VoiceTranscribeActivity.class);
                 intent.putExtra(VoiceTranscribeActivity.EXTRA_IMPORTED_AUDIO_URI, uri.toString());
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -105,6 +120,7 @@ public class HomeFragment extends Fragment {
             case PDF:
             case IMAGE:
             case TEXT: {
+                // 如果是PDF、图片或文本，直接打开文档浏览界面，并传入URI
                 Intent intent = new Intent(requireContext(), DocumentViewerActivity.class);
                 intent.setData(uri);
                 intent.putExtra(DocumentViewerActivity.EXTRA_URI, uri);
@@ -122,9 +138,12 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    //判断URI类型，先通过ContentResolver获取MIME类型，
+    //如果无法获取或不明确，则通过文件扩展名进行判断
     private ImportType resolveImportType(Uri uri) {
         String type = requireContext().getContentResolver().getType(uri);
         if (type != null) {
+            //根据MIME类型判断文件类型
             if (type.startsWith("audio/")) return ImportType.AUDIO;
             if ("application/pdf".equals(type)) return ImportType.PDF;
             if (type.startsWith("image/")) return ImportType.IMAGE;
@@ -133,6 +152,7 @@ public class HomeFragment extends Fragment {
         String name = queryDisplayName(uri);
         if (name != null) {
             String lower = name.toLowerCase();
+            //根据文件扩展名判断文件类型
             if (lower.endsWith(".mp3") || lower.endsWith(".m4a") || lower.endsWith(".wav")
                 || lower.endsWith(".aac") || lower.endsWith(".ogg") || lower.endsWith(".flac")
                 || lower.endsWith(".amr") || lower.endsWith(".3gp")) {

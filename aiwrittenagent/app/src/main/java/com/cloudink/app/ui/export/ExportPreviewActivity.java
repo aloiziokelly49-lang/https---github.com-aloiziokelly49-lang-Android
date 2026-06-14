@@ -34,18 +34,10 @@ import java.util.concurrent.Executors;
 /**
  * 高清大图预览与导出页 —— 分块渲染防 OOM + MediaStore 相册保存 + PdfDocument 导出。
  *
- * <h3>渲染流程</h3>
- * <ol>
- *   <li>将文本按段落分组, 每组独立渲染为一个 tile Bitmap (单 tile ≤ 4096px 高)</li>
- *   <li>将所有 tile 缩放后拼接到 A4 画布 (2480×3508px, 300dpi)</li>
- *   <li>保存至系统相册 (MediaStore API, Android 10+ 适配)</li>
- *   <li>可选: 导出为标准 A4 PDF (PdfDocument)</li>
- * </ol>
  */
 @RequiresApi(api = Build.VERSION_CODES.Q)
 public class ExportPreviewActivity extends AppCompatActivity {
 
-    // Intent extra keys
     public static final String EXTRA_TEXT    = "export_text";
     public static final String EXTRA_CHAR_SP = "export_char_sp";
     public static final String EXTRA_LINE_SP = "export_line_sp";
@@ -54,11 +46,10 @@ public class ExportPreviewActivity extends AppCompatActivity {
     public static final String EXTRA_PEN     = "export_pen";
     public static final String EXTRA_FONT    = "export_font";
 
-    // A4 at 300 dpi
     private static final int A4_W = 2480;
     private static final int A4_H = 3508;
     private static final int TILE_MAX_H = 4096;
-    private static final int EXPORT_W = 1240; // 渲染宽度 (平衡质量与性能)
+    private static final int EXPORT_W = 1240; 
 
     private ActivityExportPreviewBinding binding;
     private final HandwritingEngine engine = com.cloudink.app.CloudInkApplication
@@ -102,7 +93,6 @@ public class ExportPreviewActivity extends AppCompatActivity {
         params.setFontPath(i.getStringExtra(EXTRA_FONT) != null
             ? i.getStringExtra(EXTRA_FONT) : "fonts/NiHeWoDeLangManYuZhou-2.ttf");
 
-        // 应用导入的字体与纸张主题到引擎，保证 tile 背景色与 A4 底色一致
         engine.switchFont(this, params.getFontPath());
         engine.setTheme(com.cloudink.app.rendering.model.PaperThemeManager
             .fromIndex(params.getPaperIndex()));
@@ -130,7 +120,9 @@ public class ExportPreviewActivity extends AppCompatActivity {
         binding.btnExportPdf.setEnabled(false);
 
         executor.submit(() -> {
+            // 分块渲染文本为多张 Bitmap
             List<Bitmap> tiles = renderTiles();
+            // 将多张 Bitmap 拼接成一张 A4 大小的 Bitmap
             finalBitmap = stitchToA4(tiles);
 
             runOnUiThread(() -> {
@@ -159,14 +151,15 @@ public class ExportPreviewActivity extends AppCompatActivity {
     }
 
     // ================================================================
-    // 分块渲染
+    // 分块渲染流程
     // ================================================================
 
     private List<Bitmap> renderTiles() {
         List<Bitmap> tiles = new ArrayList<>();
+        // 将文本按换行符分割成段落，
         String[] paragraphs = text.split("\n", -1);
 
-        // 按段落分组, 每组 ~15 段 (经验值, 约产生 3000~4000px 高度)
+        // 再按每 15 段分成一组，用来渲染成一个 Bitmap，
         final int groupSize = 15;
         for (int i = 0; i < paragraphs.length; i += groupSize) {
             StringBuilder chunk = new StringBuilder();
@@ -177,8 +170,11 @@ public class ExportPreviewActivity extends AppCompatActivity {
             if (chunk.length() == 0 && paragraphs.length == 0) {
                 chunk.append(" ");
             }
-            // 缩放字号以适应导出宽度
+            // 计算导出专用参数，
+            // 来把 bitmap 宽度固定在A4宽度
             HandwritingParams exportParams = buildExportParams();
+
+            // 渲染当前文本块，得到 Bitmap，
             Bitmap tile = engine.render(chunk.toString(), exportParams, penType, EXPORT_W);
             if (tile != null) tiles.add(tile);
         }
@@ -204,6 +200,7 @@ public class ExportPreviewActivity extends AppCompatActivity {
     // ================================================================
 
     private Bitmap stitchToA4(List<Bitmap> tiles) {
+        // 创建一张 A4 大小的 Bitmap 作为画布，
         Bitmap a4 = Bitmap.createBitmap(A4_W, A4_H, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(a4);
         // 使用与编辑器相同的纸张主题色，保持导出一致
@@ -224,7 +221,6 @@ public class ExportPreviewActivity extends AppCompatActivity {
             m.postScale(tileScale, tileScale);
             m.postTranslate(0, yCursor);
 
-            // 只绘制可见区域 (用 clipRect 防止越界)
             canvas.save();
             canvas.clipRect(0, yCursor, A4_W, yCursor + scaledH);
             canvas.drawBitmap(tile, m, null);
@@ -252,14 +248,21 @@ public class ExportPreviewActivity extends AppCompatActivity {
         try {
             String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             String filename = "CloudInk_" + ts + ".png";
-
+            
+            // 构建 ContentValues，准备插入一条新的媒体记录，
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
             values.put(MediaStore.Images.Media.RELATIVE_PATH,
                 Environment.DIRECTORY_PICTURES + "/CloudInk");
+
+            // 标记为 pending，表示正在写入数据，
+            // 不会在相册里显示，也不会让其他应用访问，
+            // 直到我们写入完成并更新状态，
             values.put(MediaStore.Images.Media.IS_PENDING, 1);
 
+            // 插入一条新的媒体记录，也就是生成一个占位，返回Uri，
+            // 获取到这个占位的 Uri 后，才能打开输出流写入数据，
             Uri uri = getContentResolver().insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             if (uri == null) {
@@ -268,11 +271,15 @@ public class ExportPreviewActivity extends AppCompatActivity {
                 return;
             }
 
+            // 打开这个 Uri 的输出流，写入 Bitmap 数据，
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                 finalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
             }
 
             values.clear();
+
+            // 写入完成，更新状态，标记为非 pending，
+            // 这样就可以在相册里显示了，
             values.put(MediaStore.Images.Media.IS_PENDING, 0);
             getContentResolver().update(uri, values, null, null);
 
@@ -299,12 +306,17 @@ public class ExportPreviewActivity extends AppCompatActivity {
             String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             String filename = "CloudInk_" + ts + ".pdf";
 
+            // 构建 ContentValues，准备插入一条新的媒体记录，
             ContentValues values = new ContentValues();
             values.put(MediaStore.Downloads.DISPLAY_NAME, filename);
             values.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
             values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/CloudInk");
+            // 标记为 pending，表示正在写入数据，
             values.put(MediaStore.Downloads.IS_PENDING, 1);
 
+            // 插入一条新的媒体记录，也就是创建一个占位，
+            // 返回 Uri，
+            // 获取到这个 Uri 后，才能打开输出流写入数据，
             Uri uri = getContentResolver().insert(
                 MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
             if (uri == null) {
@@ -312,18 +324,26 @@ public class ExportPreviewActivity extends AppCompatActivity {
                 return;
             }
 
+            //使用 PdfDocument
             PdfDocument pdf = new PdfDocument();
             PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(A4_W, A4_H, 1).create();
+            // 创建一个 PDF 页面
             PdfDocument.Page page = pdf.startPage(pageInfo);
+            // 将 Bitmap 绘制到 PDF 页面上，
             page.getCanvas().drawBitmap(finalBitmap, 0, 0, null);
+            // 完成当前页面的绘制，并将其添加到 PDF 文档中，
             pdf.finishPage(page);
 
+            // 打开这个 Uri 的输出流，写入 PDF 数据，
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                 pdf.writeTo(out);
             }
             pdf.close();
 
             values.clear();
+
+            // 写入完成，更新状态，标记为非 pending，
+            // 这样就可以在下载管理器里显示了，
             values.put(MediaStore.Downloads.IS_PENDING, 0);
             getContentResolver().update(uri, values, null, null);
 

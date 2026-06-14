@@ -26,7 +26,6 @@ public class PreviewCanvas extends View {
     private final Matrix drawMatrix;
     private int canvasBgColor;
 
-    // 缩放与平移
     private float scaleFactor = 1f;
     private final float minScale = 1f;
     private final float maxScale = 5f;
@@ -65,7 +64,6 @@ public class PreviewCanvas extends View {
         placeholderPaint.setColor(isDark ? 0xFFAAAAAA : 0xFF9E9E9E);
     }
 
-    /** 主题切换后刷新预览区底色。 */
     public void refreshTheme(Context ctx) {
         updateColors(ctx);
         invalidate();
@@ -83,7 +81,6 @@ public class PreviewCanvas extends View {
         translateY = 0f;
     }
 
-    /** 节流重绘，通过 postOnAnimation 与 VSYNC 同步，避免 BLASTBufferQueue 溢出。 */
     private void requestRedraw() {
         if (invalidatePending) return;
         invalidatePending = true;
@@ -135,15 +132,24 @@ public class PreviewCanvas extends View {
     // 缩放手势
     // ================================================================
 
+    // 双指缩放时，保持缩放中心不变，
+    // 调整平移以抵消缩放引起的位移，
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
+            //计算新的缩放比例，并限制在 minScale 和 maxScale 之间，
             float newScale = scaleFactor * detector.getScaleFactor();
             newScale = Math.max(minScale, Math.min(newScale, maxScale));
+            
+            //计算缩放比例的变化倍数，
+            //调整 translateX 和 translateY，
+            //使缩放中心保持不变，
             float scaleChange = newScale / scaleFactor;
+            //dector.getFocusX() 就是缩放中心在 View 坐标系中的位置，
             translateX = detector.getFocusX() - scaleChange * (detector.getFocusX() - translateX);
             translateY = detector.getFocusY() - scaleChange * (detector.getFocusY() - translateY);
             scaleFactor = newScale;
+            //请求重绘
             requestRedraw();
             return true;
         }
