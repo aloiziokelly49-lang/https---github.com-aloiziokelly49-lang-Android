@@ -278,7 +278,7 @@ public class ExportPreviewActivity extends AppCompatActivity {
 
             values.clear();
 
-            // 写入完成，更新状态，标记为非 pending，
+            // 写入完成，更新状态，标记为 完成，
             // 这样就可以在相册里显示了，
             values.put(MediaStore.Images.Media.IS_PENDING, 0);
             getContentResolver().update(uri, values, null, null);
@@ -342,7 +342,7 @@ public class ExportPreviewActivity extends AppCompatActivity {
 
             values.clear();
 
-            // 写入完成，更新状态，标记为非 pending，
+            // 写入完成，更新状态，标记为 完成，
             // 这样就可以在下载管理器里显示了，
             values.put(MediaStore.Downloads.IS_PENDING, 0);
             getContentResolver().update(uri, values, null, null);

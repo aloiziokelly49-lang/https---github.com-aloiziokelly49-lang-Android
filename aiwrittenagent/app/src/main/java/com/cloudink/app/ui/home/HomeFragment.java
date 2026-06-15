@@ -255,6 +255,9 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    // 从URI解码出适合OCR处理的Bitmap，先获取图片尺寸进行采样计算，避免加载过大的图片导致内存问题
+
+    //降采样，简单的边界裁剪
     @androidx.annotation.Nullable
     private android.graphics.Bitmap decodeOcrBitmap(Uri imageUri) throws java.io.IOException {
         BitmapFactory.Options bounds = new BitmapFactory.Options();
@@ -265,8 +268,11 @@ public class HomeFragment extends Fragment {
         }
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888;
+
+        //按比例缩小图片，最大边不超过2048像素，避免内存溢出
         opts.inSampleSize = TesseractOcrManager.computeInSampleSize(
             bounds.outWidth, bounds.outHeight, 2048);
+
         try (InputStream is = requireContext().getContentResolver().openInputStream(imageUri)) {
             if (is == null) return null;
             return BitmapFactory.decodeStream(is, null, opts);

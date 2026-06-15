@@ -125,9 +125,12 @@ public class EditorVoiceCaptureController {
         }
 
         AudioRecorderServiceStarter.stop(appContext);
+
+        // 等待 边录边转完全停止后，进行 百度转写 或 提示用户，
         tryFinalize();
     }
 
+    // 用户打断：立即停止录音和转写，保留当前转写结果，提示用户可编辑后插入草稿
     public void interruptCapture() {
         if (!capturing) return;
         stopRequested = true;
@@ -146,6 +149,7 @@ public class EditorVoiceCaptureController {
         voice.refreshAppendEnabled();
     }
 
+    // 用户取消：立即停止录音和转写，丢弃当前转写结果，重置 UI 状态
     public void cancelCapture() {
         stopRequested = true;
         capturing = false;
@@ -168,7 +172,7 @@ public class EditorVoiceCaptureController {
         sessionTranscript.setLength(0);
     }
 
-    // 一键拼接到当前转写结果末尾，
+    // 用户可随时打断，并一键拼接到现有草稿中（当前转写结果末尾），
     // 适用于输入法语音等外部转写结果
     public void appendExternalSegment(String segment) {
         if (segment == null || segment.trim().isEmpty()) return;
@@ -178,7 +182,9 @@ public class EditorVoiceCaptureController {
         if (sessionTranscript.length() > 0 && !sessionTranscript.toString().endsWith("\n")) {
             sessionTranscript.append('\n');
         }
+        // 拼接到当前转写结果末尾，更新 UI 显示
         sessionTranscript.append(cleaned);
+        // 更新 UI 显示
         voice.setLiveTranscript(sessionTranscript.toString());
         voice.refreshAppendEnabled();
     }
@@ -271,6 +277,7 @@ public class EditorVoiceCaptureController {
         if (!speechStopped && speechManager != null && speechManager.isListening()) return;
         if (baiduRunning) return;
 
+        // 合并边录边转结果和最终转写结果，更新 UI 显示
         mergeTranscriptToVoice();
         String text = voice.getLiveTranscript() != null ? voice.getLiveTranscript().trim() : "";
 
@@ -279,6 +286,8 @@ public class EditorVoiceCaptureController {
             voice.setTranscribing(true);
             voice.setStatusMessage("百度语音转写中…");
             final String path = recordedFilePath;
+            
+            // 后台线程进行百度转写，UI 显示状态
             baiduHelper.recognizeAudioFile(path, new BaiduAsrHelper.AsrCallback() {
                 @Override
                 public void onSuccess(String result) {
@@ -286,6 +295,8 @@ public class EditorVoiceCaptureController {
                         baiduRunning = false;
                         if (result != null && !result.trim().isEmpty()) {
                             sessionTranscript.setLength(0);
+
+                            // 拼接百度转写结果到当前转写结果末尾，更新 UI 显示
                             sessionTranscript.append(result.trim());
                             voice.setLiveTranscript(sessionTranscript.toString());
                         }
@@ -325,6 +336,7 @@ public class EditorVoiceCaptureController {
         voice.refreshAppendEnabled();
     }
 
+    // 完成停止：如果有转写结果，保存录音记录；更新 UI 状态
     private void completeStop() {
         if (recordedFilePath != null) {
             String transcript = voice.getLiveTranscript();

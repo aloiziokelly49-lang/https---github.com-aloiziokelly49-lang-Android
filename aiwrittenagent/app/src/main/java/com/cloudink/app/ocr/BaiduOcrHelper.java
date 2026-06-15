@@ -65,6 +65,8 @@ public class BaiduOcrHelper {
                 String url = (handwriting ? HANDWRITING_URL : GENERAL_URL) + "?access_token=" + token;
 
                 String imageB64 = Base64.encodeToString(jpeg, Base64.NO_WRAP);
+
+                //百度，开启自动倾斜校正
                 String body = "image=" + java.net.URLEncoder.encode(imageB64, "UTF-8")
                     + "&detect_direction=true"
                     + "&probability=false";

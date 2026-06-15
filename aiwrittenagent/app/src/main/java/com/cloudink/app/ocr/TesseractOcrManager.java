@@ -119,7 +119,6 @@ public class TesseractOcrManager {
         return recognizeInternal(bitmap, TessBaseAPI.PageSegMode.PSM_AUTO, false);
     }
 
-    /** 本地回退：针对手写/稀疏文字优化预处理与分页模式。 */
     public String recognizeHandwriting(Bitmap bitmap) {
         return recognizeInternal(bitmap, TessBaseAPI.PageSegMode.PSM_SPARSE_TEXT, true);
     }
@@ -191,7 +190,6 @@ public class TesseractOcrManager {
         return out;
     }
 
-    /** 灰度 + 对比度，提升印刷体/截图识别率。 */
     public static Bitmap preprocessForOcr(Bitmap src) {
         int w = src.getWidth();
         int h = src.getHeight();
@@ -214,7 +212,6 @@ public class TesseractOcrManager {
         return out;
     }
 
-    /** 缩放到合理尺寸，显著加快识别并减少乱码。 */
     public static Bitmap scaleForOcr(Bitmap src) {
         int w = src.getWidth();
         int h = src.getHeight();
@@ -227,7 +224,6 @@ public class TesseractOcrManager {
         return Bitmap.createBitmap(src, 0, 0, w, h, m, true);
     }
 
-    /** 解码时按目标最长边计算 inSampleSize。 */
     public static int computeInSampleSize(int width, int height, int maxEdge) {
         int maxDim = Math.max(width, height);
         int sample = 1;
